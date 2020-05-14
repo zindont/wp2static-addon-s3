@@ -51,7 +51,15 @@ class Controller {
         foreach ( $rows as $row ) {
             $options[ $row->name ] = $row;
         }
+        
+        if (defined('AWS_ACCESS_KEY_ID')) {
+            $options['s3AccessKeyID']->value = AWS_ACCESS_KEY_ID;
+        }
 
+        if (defined('AWS_SECRET_ACCESS_KEY')) {
+            $options['s3SecretAccessKey']->value = \WP2Static\CoreOptions::encrypt_decrypt('encrypt', AWS_SECRET_ACCESS_KEY);
+        }
+        
         return $options;
     }
 
