@@ -60,6 +60,10 @@ class Controller {
             $options['s3SecretAccessKey']->value = \WP2Static\CoreOptions::encrypt_decrypt('encrypt', AWS_SECRET_ACCESS_KEY);
         }
         
+        if (defined('AWS_S3_BUCKET_STAGING')) {
+            $options['s3Bucket']->value = AWS_S3_BUCKET_STAGING;
+        }
+
         return $options;
     }
 
@@ -412,16 +416,10 @@ class Controller {
      * @return string option value
      */
     public static function getValue( string $name ) : string {
-        global $wpdb;
 
-        $table_name = $wpdb->prefix . 'wp2static_addon_s3_options';
+        $options = self::getOptions();
 
-        $sql = $wpdb->prepare(
-            "SELECT value FROM $table_name WHERE" . ' name = %s LIMIT 1',
-            $name
-        );
-
-        $option_value = $wpdb->get_var( $sql );
+        $option_value = $options[$name]->value;
 
         if ( ! is_string( $option_value ) ) {
             return '';

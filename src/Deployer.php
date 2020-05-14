@@ -97,6 +97,41 @@ class Deployer {
 
                 $mime_type = MimeTypes::GuessMimeType( $filename );
 
+                // Check bucket exist
+                try {
+                    $isBucketExist = $s3->headBucket([
+                        'Bucket' => Controller::getValue( 's3Bucket' )
+                    ]);
+                } catch (\Throwable $th) {
+                    // Bucket not exist
+                    if (strpos($th->getMessage(), '404 Not Found')) {
+                        $isBucketExist = false;
+                    }
+                }
+
+                // Create bucket if not exist
+                if(!$isBucketExist){
+                    $s3->createBucket([
+                        'ACL'    => 'public-read',
+                        'Bucket' => Controller::getValue( 's3Bucket' )
+                    ]);
+                    
+                    // Set bucket as static website
+                    $s3->putBucketWebsite([
+                        'Bucket' => Controller::getValue( 's3Bucket' ),
+                        'WebsiteConfiguration' => [ // REQUIRED
+                            'ErrorDocument' => [
+                                'Key' => 'error.html', // REQUIRED
+                            ],
+                            'IndexDocument' => [
+                                'Suffix' => 'index.html', // REQUIRED
+                            ]
+                        ],
+                    ]);
+
+                }
+
+                
                 $result = $s3->putObject(
                     [
                         'Bucket' => Controller::getValue( 's3Bucket' ),
