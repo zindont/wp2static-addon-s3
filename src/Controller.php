@@ -32,6 +32,11 @@ class Controller {
                 'wp2static s3',
                 [ 'WP2StaticS3\CLI', 's3' ]
             );
+
+            \WP_CLI::add_command(
+                'wp2static deploy-s3',
+                [ 'WP2StaticS3\CLI', 'deployCLI' ]
+            );
         }
     }
 
@@ -60,8 +65,8 @@ class Controller {
             $options['s3SecretAccessKey']->value = \WP2Static\CoreOptions::encrypt_decrypt('encrypt', AWS_SECRET_ACCESS_KEY);
         }
         
-        if (defined('AWS_S3_BUCKET_STAGING')) {
-            $options['s3Bucket']->value = AWS_S3_BUCKET_STAGING;
+        if (defined('AWS_S3_BUCKET')) {
+            $options['s3Bucket']->value = AWS_S3_BUCKET;
         }
 
         return $options;

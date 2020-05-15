@@ -34,5 +34,20 @@ class CLI {
             WP_CLI::line( 'TBC setting options for S3 addon' );
         }
     }
+
+    public function deployCLI(array $args, array $assoc_args)
+    {
+        global $envS3;
+        $envS3 = isset( $assoc_args['env'] ) ? $assoc_args['env'] : false;
+
+        // do_action( 'wp2static_deploy', \WP2Static\ProcessedSite::getPath() );
+
+        $processed_site_path = \WP2Static\ProcessedSite::getPath();
+        
+        \WP2Static\WsLog::l( 'S3 Addon deploying' );
+
+        $s3_deployer = new Deployer();
+        $s3_deployer->upload_files( $processed_site_path );
+    }
 }
 

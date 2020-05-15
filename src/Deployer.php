@@ -8,6 +8,7 @@ use Aws\S3\S3Client;
 use Aws\CloudFront\CloudFrontClient;
 use Aws\Exception\AwsException;
 use Aws\Credentials\Credentials;
+use WP_CLI;
 
 class Deployer {
 
@@ -16,7 +17,23 @@ class Deployer {
 
     // options - load from addon's static methods
 
-    public function __construct() {}
+    public function __construct() {
+        global $envS3;
+        
+        switch ($envS3) {
+            case 'staging':
+                $this->bucketName = AWS_S3_BUCKET_STAGING;
+                break;
+            case 'preview':
+                $this->bucketName = AWS_S3_BUCKET_PREVIEW;
+                break;
+            default:
+                $this->bucketName = Controller::getValue( 's3Bucket' );
+                break;
+        }
+        // Set s3bucket to process
+        // $this->bucketName = $envS3 ?? Controller::getValue( 's3Bucket' );
+    }
 
     public function upload_files( string $processed_site_path ) : void {
         // check if dir exists
@@ -100,7 +117,7 @@ class Deployer {
                 // Check bucket exist
                 try {
                     $isBucketExist = $s3->headBucket([
-                        'Bucket' => Controller::getValue( 's3Bucket' )
+                        'Bucket' => $this->bucketName
                     ]);
                 } catch (\Throwable $th) {
                     // Bucket not exist
@@ -113,12 +130,12 @@ class Deployer {
                 if(!$isBucketExist){
                     $s3->createBucket([
                         'ACL'    => 'public-read',
-                        'Bucket' => Controller::getValue( 's3Bucket' )
+                        'Bucket' => $this->bucketName
                     ]);
                     
                     // Set bucket as static website
                     $s3->putBucketWebsite([
-                        'Bucket' => Controller::getValue( 's3Bucket' ),
+                        'Bucket' => $this->bucketName,
                         'WebsiteConfiguration' => [ // REQUIRED
                             'ErrorDocument' => [
                                 'Key' => 'error.html', // REQUIRED
@@ -131,10 +148,14 @@ class Deployer {
 
                 }
 
-                
+                if ( defined( 'WP_CLI' ) && WP_CLI ) {
+                    // Do WP-CLI-specific things.
+                    WP_CLI::line( 'Deploy ' . $filename . ' to bucket => ' .  $this->bucketName);
+                }
+
                 $result = $s3->putObject(
                     [
-                        'Bucket' => Controller::getValue( 's3Bucket' ),
+                        'Bucket' => $this->bucketName,
                         'Key' => $s3_key,
                         'Body' => file_get_contents( $filename ),
                         'ACL'    => 'public-read',
@@ -150,7 +171,7 @@ class Deployer {
     }
 
 
-    public function cloudfront_invalidate_all_items() : void {
+    public static function cloudfront_invalidate_all_items() : void {
         if ( ! Controller::getValue( 'cfDistributionID' ) ) {
             return;
         }
