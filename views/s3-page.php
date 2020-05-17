@@ -1,9 +1,15 @@
+<script>
+jQuery(document).ready(function () {
+    jQuery('form.disabled input').prop( "disabled", true );
+});
+</script>
 <h2>S3 Deployment Options</h2>
 
 <h3>S3</h3>
 
 <form
     name="wp2static-s3-save-options"
+    class="<?php if (defined('AWS_ACCESS_KEY_ID')) { echo 'disabled'; } ?>"
     method="POST"
     action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
 
@@ -55,6 +61,7 @@
                 <input
                     id="<?php echo $view['options']['s3AccessKeyID']->name; ?>"
                     name="<?php echo $view['options']['s3AccessKeyID']->name; ?>"
+                    type="text"
                     value="<?php echo $view['options']['s3AccessKeyID']->value !== '' ? $view['options']['s3AccessKeyID']->value : ''; ?>"
                 />
             </td>
@@ -146,6 +153,7 @@
                 <input
                     id="<?php echo $view['options']['cfAccessKeyID']->name; ?>"
                     name="<?php echo $view['options']['cfAccessKeyID']->name; ?>"
+                    type="text"
                     value="<?php echo $view['options']['cfAccessKeyID']->value !== '' ? $view['options']['cfAccessKeyID']->value : ''; ?>"
                 />
             </td>
